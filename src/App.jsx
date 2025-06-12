@@ -1,68 +1,53 @@
-import React, { useState } from "react";
-import { MathJax, MathJaxContext } from "better-react-mathjax";
+import React, { useState } from 'react';
+import { MathJax, MathJaxContext } from 'better-react-mathjax';
 
-const config = {
-  loader: { load: ["input/tex", "output/chtml"] }
-};
-
-const App = () => {
-  const [input, setInput] = useState("");
-  const [latex, setLatex] = useState("");
+function App() {
+  const [input, setInput] = useState('');
+  const [latex, setLatex] = useState('');
 
   const convertToLatex = (expr) => {
-    let latexExpr = expr;
+    let updated = expr.replace(/–/g, '-'); // replace En-dash with hyphen
+    updated = updated.replace(/\s/g, '');  // remove whitespace
 
-    // Replace fractions like 1/2 with \frac{1}{2}
-    latexExpr = latexExpr.replace(/(\d+)\s*\/\s*(\d+)/g, "\\frac{$1}{$2}");
+    // Replace all a/b with \frac{a}{b} (basic version)
+    updated = updated.replace(/([^<>=]+?)\/([^<>=]+)/g, (match, numerator, denominator) => {
+      return `\\frac{${numerator}}{${denominator}}`;
+    });
 
-    // Replace multiplication symbol
-    latexExpr = latexExpr.replace(/\*/g, "\\cdot");
+    // Now split for inequality signs
+    updated = updated.replace(/</g, ' < ');
+    updated = updated.replace(/>/g, ' > ');
+    updated = updated.replace(/=/g, ' = ');
 
-    // Remove existing \left and \right to avoid duplication
-    latexExpr = latexExpr.replace(/\\left/g, "");
-    latexExpr = latexExpr.replace(/\\right/g, "");
-
-    // Wrap brackets with \left( and \right)
-    latexExpr = latexExpr.replace(/\(/g, "\\left(");
-    latexExpr = latexExpr.replace(/\)/g, "\\right)");
-
-    return latexExpr;
+    return updated;
   };
 
   const handleChange = (e) => {
-    const userInput = e.target.value;
-    setInput(userInput);
-    const convertedLatex = convertToLatex(userInput);
-    setLatex(convertedLatex);
+    const value = e.target.value;
+    setInput(value);
+    const converted = convertToLatex(value);
+    setLatex(converted);
   };
 
   return (
-    <MathJaxContext config={config}>
-      <div style={{ padding: "2rem", fontFamily: "Arial" }}>
+    <MathJaxContext>
+      <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
         <h2>🧮 Math to LaTeX Converter</h2>
-
         <input
           type="text"
-          placeholder="Enter expression like 12(1/3d-5)=12((d+2)/4)"
           value={input}
           onChange={handleChange}
-          style={{ width: "100%", padding: "0.5rem", fontSize: "1rem" }}
+          placeholder="Enter math like -2(x+3)/-2 < -28/-2"
+          style={{ padding: '10px', width: '100%', fontSize: '1.2rem' }}
         />
+        <h3>🔤 LaTeX Output:</h3>
+        <pre style={{ background: '#f4f4f4', padding: '1rem' }}>{latex}</pre>
 
-        <div style={{ marginTop: "1rem" }}>
-          <strong>🔤 LaTeX Output:</strong>
-          <pre style={{ backgroundColor: "#f0f0f0", padding: "1rem" }}>{latex}</pre>
-        </div>
-
-        <div style={{ marginTop: "1rem" }}>
-          <strong>🧮 Rendered Output:</strong>
-          <div style={{ fontSize: "1.5rem", marginTop: "0.5rem" }}>
-            <MathJax inline dynamic>{`\\(${latex}\\)`}</MathJax>
-          </div>
-        </div>
+        <h3>🧮 Rendered Output:</h3>
+        <MathJax dynamic inline>{`\\(${latex}\\)`}</MathJax>
       </div>
     </MathJaxContext>
   );
-};
+}
 
 export default App;

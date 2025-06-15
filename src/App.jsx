@@ -29,7 +29,7 @@ export default function App() {
     const latexConverted = convertToLatex(raw);
     setLatex(latexConverted);
   };
-
+  console.log(latex);
   return (
     <MathJaxContext config={config}>
       <div style={{ padding: "2rem", fontFamily: "Arial" }}>
